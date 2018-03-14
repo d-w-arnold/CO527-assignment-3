@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.util.*;
 
@@ -10,9 +11,36 @@ public class Main
 {
     public static void main(String[] args)
     {
-        String input = "example1.in";
-        String inputPath = "./inputs/" + input;
-        String[] contents = Objects.requireNonNull(fileContents(inputPath)).split("\n");
+        // The path to the directory of input files.
+        executeFiles("./examples/");
+    }
+
+    private static void executeFiles(String path)
+    {
+        // Executes each file in the directory at the specified path.
+        final File folder = new File(path);
+        ArrayList<String> inputs = listFilesForFolder(folder);
+        for (String input : inputs) {
+            execute(path + input);
+        }
+    }
+
+    private static ArrayList<String> listFilesForFolder(final File folder) {
+        ArrayList<String> inputs = new ArrayList<String>();
+        for (final File fileEntry : Objects.requireNonNull(folder.listFiles())) {
+            if (fileEntry.isDirectory()) {
+                listFilesForFolder(fileEntry);
+            } else {
+                inputs.add(fileEntry.getName());
+            }
+        }
+        return inputs;
+    }
+
+    // TODO Make this method small, have it comprise of multiple smaller methods.
+    private static void execute(String input)
+    {
+        String[] contents = Objects.requireNonNull(fileContents(input)).split("\n");
         String[] header = contents[0].split(" ");
 
         // bits in Word.
@@ -84,8 +112,7 @@ public class Main
             }
         }
 
-        String outputPath = "./outputs/out-" + input;
-        System.out.println("\n" + "Input: " + input + "\n\n" + "Output: " + output.toString() + "\n" + result(outputPath, output.toString()));
+        System.out.println("\n" + "Input: " + input + "\n" + "Output: " + output.toString());
     }
 
     private static String fileContents(String file)
@@ -106,24 +133,5 @@ public class Main
             System.out.println(e);
         }
         return null;
-    }
-
-    private static String result(String path, String output)
-    {
-        String[] contents = Objects.requireNonNull(fileContents(path)).split("\n");
-
-        StringBuilder expected = new StringBuilder();
-
-        for (String content : contents) {
-            expected.append(content);
-        }
-
-        if (expected.toString().equals(output)) {
-            // Success.
-            return "Expected: " + expected.toString() + "\n\n" + "Success!";
-        } else {
-            // Fail.
-            return "Expected Output: " + expected.toString() + "\n\n" + "Fail.";
-        }
     }
 }
