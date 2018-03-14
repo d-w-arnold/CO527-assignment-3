@@ -31,6 +31,8 @@ public class Main
         int offsetLength = (int) (Math.log(bytesInLine) / Math.log(2));
         int tagLength = W - (indexLength + offsetLength);
 
+        StringBuilder output = new StringBuilder();
+
         // Iterate through each address (provided in decimal with each input file).
         for (int j = 1; j < contents.length; j++) {
             int address = Integer.parseInt(contents[j]);
@@ -46,6 +48,8 @@ public class Main
 //            System.out.println("Offset: " + offset);
 //            System.out.println("\n");
 
+
+
             int decimalTag = Integer.parseInt(tag, 2);
 
             // Assuming all addresses have the same index (same block).
@@ -60,26 +64,20 @@ public class Main
                     }
                 }
                 block.add(decimalTag);
-                print(block);
+                output.append("C");
             } else {
                 if (block.size() == k) {
                     // If the block of the cache does NOT contain the decimalTag, and cache is full.
                     block.remove(0);
                     block.add(decimalTag);
-                    print(block);
                 } else if (block.size() < k) {
                     // If the block of the cache does NOT contain the decimalTag, and cache is NOT full.
                     block.add(decimalTag);
-                    print(block);
                 }
+                output.append("M");
             }
         }
-    }
-
-    private static void print(List<Integer> list)
-    {
-        System.out.println(list);
-//        System.out.println("\n");
+        System.out.println(output);
     }
 
     private static String fileContents(String file)
