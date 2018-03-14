@@ -1,5 +1,9 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author David W. Arnold
@@ -7,56 +11,75 @@ import java.io.FileReader;
  */
 public class Main
 {
-    // private HashMap<String, ...>
-
     public static void main(String[] args)
     {
-        // Repeat for each input file.
-        for (int i = 1; i < 2; i++) {
+        List<Integer> block = new ArrayList<Integer>();
 
-            String[] contents = fileContents("./inputs/example" + i + ".in").split("\n");
+        String[] contents = Objects.requireNonNull(fileContents("./inputs/example1.in")).split("\n");
 
-            String[] header = contents[0].split(" ");
+        String[] header = contents[0].split(" ");
 
-            int W = Integer.parseInt(header[0]);
+        int W = Integer.parseInt(header[0]);
+        int C = Integer.parseInt(header[1]);
+        int B = Integer.parseInt(header[2]);
+        int k = Integer.parseInt(header[3]);
 
-            int C = Integer.parseInt(header[1]);
+        int numOfBlocks = C / B;
+        int bytesInLine = B / k;
 
-            int B = Integer.parseInt(header[2]);
+        int indexLength = (int) (Math.log(numOfBlocks) / Math.log(2));
+        int offsetLength = (int) (Math.log(bytesInLine) / Math.log(2));
+        int tagLength = W - (indexLength + offsetLength);
 
-            int k = Integer.parseInt(header[3]);
+        // Iterate through each address (provided in decimal with each input file).
+        for (int j = 1; j < contents.length; j++) {
+            int address = Integer.parseInt(contents[j]);
+            String addressString = Integer.toBinaryString(address);
+            String paddedAddressString = String.format("%" + W + "s", addressString).replace(' ', '0');
 
-            int numOfBlocks = C / B;
+            String tag = paddedAddressString.substring(0, tagLength);
+            String index = paddedAddressString.substring(tagLength, tagLength + indexLength);
+            String offset = paddedAddressString.substring(tagLength + indexLength, W);
 
-            int indexLength = (int) (Math.log(numOfBlocks) / Math.log(2));
+//            System.out.println("Tag: " + tag);
+//            System.out.println("Index: " + index);
+//            System.out.println("Offset: " + offset);
+//            System.out.println("\n");
 
-            int bytesInLine = B / k;
+            int decimalTag = Integer.parseInt(tag, 2);
 
-            int offsetLength = (int) (Math.log(bytesInLine) / Math.log(2));
-
-            int tagLength = W - (indexLength + offsetLength);
-
-            System.out.println("Tag length: " + tagLength);
-            System.out.println("Offset length: " + offsetLength);
-            System.out.println("Index length: " + indexLength);
-            System.out.println("\n");
-
-            // Iterate through each address (provided in decimal with each input file).
-            for (int j = 1; j < contents.length; j++) {
-                int address = Integer.parseInt(contents[j]);
-                String addressString = Integer.toBinaryString(address);
-                String paddedAddressString = String.format("%" + W + "s", addressString).replace(' ', '0');
-
-                String tag = paddedAddressString.substring(0, tagLength);
-                String index = paddedAddressString.substring(tagLength, tagLength + indexLength);
-                String offset = paddedAddressString.substring(tagLength + indexLength, W);
-
-                System.out.println("Tag: " + tag);
-                System.out.println("Index: " + index);
-                System.out.println("Offset: " + offset);
-                System.out.println("\n");
+            // Assuming all addresses have the same index (same block).
+            if (block.contains(decimalTag)) {
+                // If block of the cache already contains the decimalTag,
+                // and cache is either full or NOT full.
+                Iterator<Integer> it = block.iterator();
+                while (it.hasNext()) {
+                    if (it.next().equals(decimalTag)) {
+                        it.remove();
+                        break;
+                    }
+                }
+                block.add(decimalTag);
+                print(block);
+            } else {
+                if (block.size() == k) {
+                    // If the block of the cache does NOT contain the decimalTag, and cache is full.
+                    block.remove(0);
+                    block.add(decimalTag);
+                    print(block);
+                } else if (block.size() < k) {
+                    // If the block of the cache does NOT contain the decimalTag, and cache is NOT full.
+                    block.add(decimalTag);
+                    print(block);
+                }
             }
         }
+    }
+
+    private static void print(List<Integer> list)
+    {
+        System.out.println(list);
+//        System.out.println("\n");
     }
 
     private static String fileContents(String file)
