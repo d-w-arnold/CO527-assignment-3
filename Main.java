@@ -1,9 +1,6 @@
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author David W. Arnold
@@ -13,15 +10,18 @@ public class Main
 {
     public static void main(String[] args)
     {
-        List<Integer> block = new ArrayList<Integer>();
-
-        String[] contents = Objects.requireNonNull(fileContents("./inputs/example1.in")).split("\n");
-
+        String input = "example1.in";
+        String inputPath = "./inputs/" + input;
+        String[] contents = Objects.requireNonNull(fileContents(inputPath)).split("\n");
         String[] header = contents[0].split(" ");
 
+        // bits in Word.
         int W = Integer.parseInt(header[0]);
+        // Bytes in Cache.
         int C = Integer.parseInt(header[1]);
+        // Bytes in Block.
         int B = Integer.parseInt(header[2]);
+        // lines in Block.
         int k = Integer.parseInt(header[3]);
 
         int numOfBlocks = C / B;
@@ -30,6 +30,17 @@ public class Main
         int indexLength = (int) (Math.log(numOfBlocks) / Math.log(2));
         int offsetLength = (int) (Math.log(bytesInLine) / Math.log(2));
         int tagLength = W - (indexLength + offsetLength);
+
+        // Creates Cache.
+        Map<String, ArrayList<Integer>> cache = new HashMap<String, ArrayList<Integer>>();
+
+        // Builds Cache, with the correct number of blocks.
+        for (int i = 0; i < numOfBlocks; i++) {
+            String s = Integer.toBinaryString(i);
+            String paddedS = String.format("%" + W + "s", s).replace(' ', '0');
+            String blockIndex = paddedS.substring(W - indexLength, W);
+            cache.put(blockIndex, new ArrayList<Integer>());
+        }
 
         StringBuilder output = new StringBuilder();
 
@@ -41,43 +52,40 @@ public class Main
 
             String tag = paddedAddressString.substring(0, tagLength);
             String index = paddedAddressString.substring(tagLength, tagLength + indexLength);
-            String offset = paddedAddressString.substring(tagLength + indexLength, W);
-
-//            System.out.println("Tag: " + tag);
-//            System.out.println("Index: " + index);
-//            System.out.println("Offset: " + offset);
-//            System.out.println("\n");
-
-
+            // String offset = paddedAddressString.substring(tagLength + indexLength, W);
 
             int decimalTag = Integer.parseInt(tag, 2);
 
-            // Assuming all addresses have the same index (same block).
-            if (block.contains(decimalTag)) {
-                // If block of the cache already contains the decimalTag,
-                // and cache is either full or NOT full.
-                Iterator<Integer> it = block.iterator();
-                while (it.hasNext()) {
-                    if (it.next().equals(decimalTag)) {
-                        it.remove();
-                        break;
+            if (cache.containsKey(index)) {
+                ArrayList<Integer> blk = cache.get(index);
+                if (blk.contains(decimalTag)) {
+                    // Block of the Cache does contains the decimalTag.
+                    Iterator<Integer> it = blk.iterator();
+                    while (it.hasNext()) {
+                        if (it.next().equals(decimalTag)) {
+                            it.remove();
+                            break;
+                        }
                     }
+                    blk.add(decimalTag);
+                    output.append("C");
+                } else {
+                    // Block of the Cache does NOT contain the decimalTag.
+                    if (blk.size() == k) {
+                        // Cache is full.
+                        blk.remove(0);
+                        blk.add(decimalTag);
+                    } else if (blk.size() < k) {
+                        // Cache is NOT full.
+                        blk.add(decimalTag);
+                    }
+                    output.append("M");
                 }
-                block.add(decimalTag);
-                output.append("C");
-            } else {
-                if (block.size() == k) {
-                    // If the block of the cache does NOT contain the decimalTag, and cache is full.
-                    block.remove(0);
-                    block.add(decimalTag);
-                } else if (block.size() < k) {
-                    // If the block of the cache does NOT contain the decimalTag, and cache is NOT full.
-                    block.add(decimalTag);
-                }
-                output.append("M");
             }
         }
-        System.out.println(output);
+
+        String outputPath = "./outputs/out-" + input;
+        System.out.println("\n" + "Input: " + input + "\n\n" + "Output: " + output.toString() + "\n" + result(outputPath, output.toString()));
     }
 
     private static String fileContents(String file)
@@ -98,5 +106,24 @@ public class Main
             System.out.println(e);
         }
         return null;
+    }
+
+    private static String result(String path, String output)
+    {
+        String[] contents = Objects.requireNonNull(fileContents(path)).split("\n");
+
+        StringBuilder expected = new StringBuilder();
+
+        for (String content : contents) {
+            expected.append(content);
+        }
+
+        if (expected.toString().equals(output)) {
+            // Success.
+            return "Expected: " + expected.toString() + "\n\n" + "Success!";
+        } else {
+            // Fail.
+            return "Expected Output: " + expected.toString() + "\n\n" + "Fail.";
+        }
     }
 }
