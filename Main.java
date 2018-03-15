@@ -4,6 +4,8 @@ import java.io.FileReader;
 import java.util.*;
 
 /**
+ * CO527-Assignment-3
+ *
  * @author David W. Arnold
  * @version 13/03/2018
  */
@@ -11,15 +13,17 @@ public class Main
 {
     public static void main(String[] args)
     {
+        // Examples from the CO527-Assignment-3 brief.
         executeFiles("./examples/");
+
+        // All 20x Input files.
         executeFiles("./inputs/");
     }
 
     private static void executeFiles(String path)
     {
         // Executes each file in the directory at the specified path.
-        final File folder = new File(path);
-        ArrayList<String> inputs = listFilesForFolder(folder);
+        ArrayList<String> inputs = listFilesForFolder(new File(path));
         for (String input : inputs) {
             execute(path, input);
         }
@@ -28,28 +32,30 @@ public class Main
     private static ArrayList<String> listFilesForFolder(final File folder) {
         ArrayList<String> inputs = new ArrayList<String>();
         for (final File fileEntry : Objects.requireNonNull(folder.listFiles())) {
-            if (fileEntry.isDirectory()) {
-                listFilesForFolder(fileEntry);
-            } else {
+            if (!fileEntry.isDirectory()) {
                 inputs.add(fileEntry.getName());
             }
         }
         return inputs;
     }
 
-    // TODO Make this method small, have it comprise of multiple smaller methods.
     private static void execute(String path, String input)
     {
+        // Creates a mock up Cache.
+        Map<String, ArrayList<Long>> cache = new HashMap<String, ArrayList<Long>>();
+
+        // Each line of the input.
         String[] contents = Objects.requireNonNull(fileContents(path + input)).split("\n");
+        // Each number from the first line of the input.
         String[] header = contents[0].split(" ");
 
-        // bits in Word.
+        // Bits in Word.
         int W = Integer.parseInt(header[0]);
         // Bytes in Cache.
         int C = Integer.parseInt(header[1]);
         // Bytes in Block.
         int B = Integer.parseInt(header[2]);
-        // lines in Block.
+        // Lines in Block (k-way).
         int k = Integer.parseInt(header[3]);
 
         int numOfBlocks = C / B;
@@ -59,10 +65,7 @@ public class Main
         int offsetLength = (int) (Math.log(bytesInLine) / Math.log(2));
         int tagLength = W - (indexLength + offsetLength);
 
-        // Creates Cache.
-        Map<String, ArrayList<Long>> cache = new HashMap<String, ArrayList<Long>>();
-
-        // Builds Cache, with the correct number of blocks.
+        // Builds the Cache, with the correct number of blocks.
         for (int i = 0; i < numOfBlocks; i++) {
             String s = Long.toBinaryString(i);
             String paddedS = String.format("%" + W + "s", s).replace(' ', '0');
@@ -70,9 +73,15 @@ public class Main
             cache.put(blockIndex, new ArrayList<Long>());
         }
 
+        // The output.
         StringBuilder output = new StringBuilder();
 
-        // Iterate through each address (provided in decimal with each input file).
+        // A count for the number of characters to be output to the console.
+        long count = 0;
+        // Limits the number of characters in a line (on the console).
+        long limit = 100;
+
+        // Iterate through each address. Each address is provided in decimal (base 10) as a String.
         for (int j = 1; j < contents.length; j++) {
             long address = Long.parseUnsignedLong(contents[j]);
             String addressString = Long.toBinaryString(address);
@@ -82,12 +91,12 @@ public class Main
             String index = paddedAddressString.substring(tagLength, tagLength + indexLength);
             // String offset = paddedAddressString.substring(tagLength + indexLength, W);
 
-            long decimalTag = Long.parseLong(tag, 2);
+            long decimalTag = Long.parseUnsignedLong(tag, 2);
 
             if (cache.containsKey(index)) {
                 ArrayList<Long> blk = cache.get(index);
                 if (blk.contains(decimalTag)) {
-                    // Block of the Cache does contains the decimalTag.
+                    // Block of the Cache contains the decimalTag.
                     Iterator<Long> it = blk.iterator();
                     while (it.hasNext()) {
                         if (it.next().equals(decimalTag)) {
@@ -96,7 +105,8 @@ public class Main
                         }
                     }
                     blk.add(decimalTag);
-                    output.append("C");
+                    output.append(print(count, limit, "C"));
+                    count++;
                 } else {
                     // Block of the Cache does NOT contain the decimalTag.
                     if (blk.size() == k) {
@@ -107,7 +117,8 @@ public class Main
                         // Cache is NOT full.
                         blk.add(decimalTag);
                     }
-                    output.append("M");
+                    output.append(print(count, limit,"M"));
+                    count++;
                 }
             }
         }
@@ -133,5 +144,14 @@ public class Main
             System.out.println(e);
         }
         return null;
+    }
+
+    private static String print(long count, long limit, String letter)
+    {
+        if (count % limit == 0) {
+            return "\n" + letter;
+        } else {
+            return letter;
+        }
     }
 }
