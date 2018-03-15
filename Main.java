@@ -11,8 +11,8 @@ public class Main
 {
     public static void main(String[] args)
     {
-        // The path to the directory of input files.
         executeFiles("./examples/");
+        executeFiles("./inputs/");
     }
 
     private static void executeFiles(String path)
@@ -21,7 +21,7 @@ public class Main
         final File folder = new File(path);
         ArrayList<String> inputs = listFilesForFolder(folder);
         for (String input : inputs) {
-            execute(path + input);
+            execute(path, input);
         }
     }
 
@@ -38,9 +38,9 @@ public class Main
     }
 
     // TODO Make this method small, have it comprise of multiple smaller methods.
-    private static void execute(String input)
+    private static void execute(String path, String input)
     {
-        String[] contents = Objects.requireNonNull(fileContents(input)).split("\n");
+        String[] contents = Objects.requireNonNull(fileContents(path + input)).split("\n");
         String[] header = contents[0].split(" ");
 
         // bits in Word.
@@ -60,35 +60,35 @@ public class Main
         int tagLength = W - (indexLength + offsetLength);
 
         // Creates Cache.
-        Map<String, ArrayList<Integer>> cache = new HashMap<String, ArrayList<Integer>>();
+        Map<String, ArrayList<Long>> cache = new HashMap<String, ArrayList<Long>>();
 
         // Builds Cache, with the correct number of blocks.
         for (int i = 0; i < numOfBlocks; i++) {
-            String s = Integer.toBinaryString(i);
+            String s = Long.toBinaryString(i);
             String paddedS = String.format("%" + W + "s", s).replace(' ', '0');
             String blockIndex = paddedS.substring(W - indexLength, W);
-            cache.put(blockIndex, new ArrayList<Integer>());
+            cache.put(blockIndex, new ArrayList<Long>());
         }
 
         StringBuilder output = new StringBuilder();
 
         // Iterate through each address (provided in decimal with each input file).
         for (int j = 1; j < contents.length; j++) {
-            int address = Integer.parseInt(contents[j]);
-            String addressString = Integer.toBinaryString(address);
+            long address = Long.parseUnsignedLong(contents[j]);
+            String addressString = Long.toBinaryString(address);
             String paddedAddressString = String.format("%" + W + "s", addressString).replace(' ', '0');
 
             String tag = paddedAddressString.substring(0, tagLength);
             String index = paddedAddressString.substring(tagLength, tagLength + indexLength);
             // String offset = paddedAddressString.substring(tagLength + indexLength, W);
 
-            int decimalTag = Integer.parseInt(tag, 2);
+            long decimalTag = Long.parseLong(tag, 2);
 
             if (cache.containsKey(index)) {
-                ArrayList<Integer> blk = cache.get(index);
+                ArrayList<Long> blk = cache.get(index);
                 if (blk.contains(decimalTag)) {
                     // Block of the Cache does contains the decimalTag.
-                    Iterator<Integer> it = blk.iterator();
+                    Iterator<Long> it = blk.iterator();
                     while (it.hasNext()) {
                         if (it.next().equals(decimalTag)) {
                             it.remove();
