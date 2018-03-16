@@ -6,6 +6,8 @@ import java.util.*;
 /**
  * CO527-Assignment-3
  *
+ * Cache Memory.
+ *
  * @author David W. Arnold
  * @version 13/03/2018
  */
@@ -23,20 +25,33 @@ public class Main
     private static void executeFiles(String path)
     {
         // Executes each file in the directory at the specified path.
-        ArrayList<String> inputs = listFilesForFolder(new File(path));
-        for (String input : inputs) {
-            execute(path, input);
+        for (final File fileEntry : Objects.requireNonNull(new File(path).listFiles())) {
+            if (!fileEntry.isDirectory()) {
+                execute(path, fileEntry.getName());
+            }
         }
     }
 
-    private static ArrayList<String> listFilesForFolder(final File folder) {
-        ArrayList<String> inputs = new ArrayList<String>();
-        for (final File fileEntry : Objects.requireNonNull(folder.listFiles())) {
-            if (!fileEntry.isDirectory()) {
-                inputs.add(fileEntry.getName());
+    private static String fileContents(String file)
+    {
+        // Returns the contents of a single file.
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            StringBuilder sb = new StringBuilder();
+            String line = br.readLine();
+
+            while (line != null) {
+                sb.append(line);
+                sb.append(System.lineSeparator());
+                line = br.readLine();
             }
+
+            br.close();
+            return sb.toString();
+        } catch (Exception e) {
+            System.out.println(e);
         }
-        return inputs;
+        return null;
     }
 
     private static void execute(String path, String input)
@@ -73,9 +88,8 @@ public class Main
             cache.put(blockIndex, new ArrayList<Long>());
         }
 
-        // The output.
+        // The Output.
         StringBuilder output = new StringBuilder();
-
         // A count for the number of characters to be output to the console.
         long count = 0;
         // Limits the number of characters in a line (on the console).
@@ -124,26 +138,6 @@ public class Main
         }
 
         System.out.println("\n" + "Input: " + input + "\n" + "Output: " + output.toString());
-    }
-
-    private static String fileContents(String file)
-    {
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(file));
-            StringBuilder sb = new StringBuilder();
-            String line = br.readLine();
-
-            while (line != null) {
-                sb.append(line);
-                sb.append(System.lineSeparator());
-                line = br.readLine();
-            }
-            br.close();
-            return sb.toString();
-        } catch (Exception e) {
-            System.out.println(e);
-        }
-        return null;
     }
 
     private static String print(long count, long limit, String letter)
