@@ -1,6 +1,4 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -13,21 +11,34 @@ import java.util.*;
  */
 public class Main
 {
-    public static void main(String[] args)
+    public static void main(String[] args) throws FileNotFoundException
     {
         // Examples from the CO527-Assignment-3 brief.
-        executeFiles("./examples/");
+        executeFiles("./examples", "./examples/outputs");
 
         // All 20x Input files.
-        executeFiles("./inputs/");
+        executeFiles("./inputs", "./inputs/outputs");
     }
 
-    private static void executeFiles(String path)
+    private static String readyPath(String s)
+    {
+        if (s.substring(s.length() - 1).equals("/")) {
+            return s;
+        } else {
+            return s + "/";
+        }
+    }
+
+    private static void executeFiles(String input, String output) throws FileNotFoundException
     {
         // Executes each file in the directory at the specified path.
-        for (final File fileEntry : Objects.requireNonNull(new File(path).listFiles())) {
+        for (final File fileEntry : Objects.requireNonNull(new File(readyPath(input)).listFiles())) {
             if (!fileEntry.isDirectory()) {
-                execute(path, fileEntry.getName());
+                String filename = fileEntry.getName().substring(0, fileEntry.getName().lastIndexOf('.'));
+                PrintWriter printWriter = new PrintWriter(new File (readyPath(output) + filename + ".out"));
+                // Prints the output of each input file to it respective output file.
+                printWriter.print(execute(readyPath(input), fileEntry.getName()));
+                printWriter.close();
             }
         }
     }
@@ -39,13 +50,11 @@ public class Main
             BufferedReader br = new BufferedReader(new FileReader(file));
             StringBuilder sb = new StringBuilder();
             String line = br.readLine();
-
             while (line != null) {
                 sb.append(line);
                 sb.append(System.lineSeparator());
                 line = br.readLine();
             }
-
             br.close();
             return sb.toString();
         } catch (Exception e) {
@@ -54,7 +63,7 @@ public class Main
         return null;
     }
 
-    private static void execute(String path, String input)
+    private static String execute(String path, String input)
     {
         // Creates a mock up Cache.
         Map<String, ArrayList<Long>> cache = new HashMap<String, ArrayList<Long>>();
@@ -90,10 +99,6 @@ public class Main
 
         // The Output.
         StringBuilder output = new StringBuilder();
-        // A count for the number of characters to be output to the console.
-        long count = 0;
-        // Limits the number of characters in a line (on the console).
-        long limit = 100;
 
         // Iterate through each address. Each address is provided in decimal (base 10) as a String.
         for (int j = 1; j < contents.length; j++) {
@@ -119,8 +124,7 @@ public class Main
                         }
                     }
                     blk.add(decimalTag);
-                    output.append(print(count, limit, "C"));
-                    count++;
+                    output.append("C");
                 } else {
                     // Block of the Cache does NOT contain the decimalTag.
                     if (blk.size() == k) {
@@ -131,21 +135,13 @@ public class Main
                         // Cache is NOT full.
                         blk.add(decimalTag);
                     }
-                    output.append(print(count, limit,"M"));
-                    count++;
+                    output.append("M");
                 }
             }
         }
 
         System.out.println("\n" + "Input: " + input + "\n" + "Output: " + output.toString());
-    }
 
-    private static String print(long count, long limit, String letter)
-    {
-        if (count % limit == 0) {
-            return "\n" + letter;
-        } else {
-            return letter;
-        }
+        return output.toString();
     }
 }
