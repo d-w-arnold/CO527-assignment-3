@@ -66,7 +66,7 @@ public class Main
     private static String execute(String path, String input)
     {
         // Creates a mock up Cache.
-        Map<String, ArrayList<Long>> cache = new HashMap<String, ArrayList<Long>>();
+        LinkedHashMap<String, LinkedList<Long>> cache = new LinkedHashMap<String, LinkedList<Long>>();
 
         // Each line of the input.
         String[] contents = Objects.requireNonNull(fileContents(path + input)).split("\n");
@@ -94,7 +94,7 @@ public class Main
             String s = Long.toBinaryString(i);
             String paddedS = String.format("%" + W + "s", s).replace(' ', '0');
             String blockIndex = paddedS.substring(W - indexLength, W);
-            cache.put(blockIndex, new ArrayList<Long>());
+            cache.put(blockIndex, new LinkedList<>());
         }
 
         // The Output.
@@ -113,7 +113,7 @@ public class Main
             long decimalTag = Long.parseUnsignedLong(tag, 2);
 
             if (cache.containsKey(index)) {
-                ArrayList<Long> blk = cache.get(index);
+                LinkedList<Long> blk = cache.get(index);
                 if (blk.contains(decimalTag)) {
                     // Block of the Cache contains the decimalTag.
                     Iterator<Long> it = blk.iterator();
@@ -123,20 +123,16 @@ public class Main
                             break;
                         }
                     }
-                    blk.add(decimalTag);
                     output.append("C");
                 } else {
                     // Block of the Cache does NOT contain the decimalTag.
                     if (blk.size() == k) {
                         // Cache is full.
                         blk.remove(0);
-                        blk.add(decimalTag);
-                    } else if (blk.size() < k) {
-                        // Cache is NOT full.
-                        blk.add(decimalTag);
                     }
                     output.append("M");
                 }
+                blk.add(decimalTag);
             }
         }
 
