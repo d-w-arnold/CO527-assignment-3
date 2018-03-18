@@ -13,11 +13,16 @@ public class Main
 {
     public static void main(String[] args) throws FileNotFoundException
     {
+        long startTime = System.nanoTime();
+
         // Examples from the CO527-Assignment-3 brief.
-        executeFiles("./examples", "./examples/outputs");
+        //executeFiles("./examples", "./examples/outputs");
 
         // All 20x Input files.
         executeFiles("./inputs", "./inputs/outputs");
+
+        double totalTime = (double) (System.nanoTime() - startTime)/1000000000;
+        System.out.println("\nCompleted in: " + totalTime + " seconds");
     }
 
     private static String readyPath(String s)
@@ -136,7 +141,7 @@ public class Main
             }
         }
 
-        System.out.println("\n" + "Input: " + input + "\n" + "Output: " + output.toString());
+        System.out.println("\nInput: " + input + "\nOutput: " + output.toString());
 
         return output.toString();
     }
