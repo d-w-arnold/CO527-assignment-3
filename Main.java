@@ -18,6 +18,9 @@ public class Main
         // Examples from the CO527-Assignment-3 brief.
         //executeFiles("./examples", "./examples/outputs");
 
+        // Class Examples.
+        //executeFiles("./class", "./class/outputs");
+
         // All 20x Input files.
         executeFiles("./inputs", "./inputs/outputs");
 
